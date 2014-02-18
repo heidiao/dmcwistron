@@ -1,0 +1,6 @@
+# view AndroidManifest.xml #generated:27
+-keep class org.fourthline.cling.android.AndroidUpnpServiceImpl { <init>(...); }
+
+# view AndroidManifest.xml #generated:15
+-keep class wistron.upnp.heidi.MainActivity { <init>(...); }
+

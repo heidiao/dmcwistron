@@ -1,0 +1,20 @@
+/home/heidi/work/upnp/heidi/bin/wistronDmr-debug-unaligned.apk : \
+/home/heidi/work/upnp/heidi/bin/wistronDmr.ap_ \
+/home/heidi/work/upnp/heidi/bin/classes.dex \
+/home/heidi/work/upnp/heidi/libs/cling-core-2.0-SNAPSHOT.jar \
+/home/heidi/work/upnp/heidi/libs/seamless-swing-1.0-alpha3.jar \
+/home/heidi/work/upnp/heidi/libs/jetty-client-8.1.8.v20121106.jar \
+/home/heidi/work/upnp/heidi/libs/seamless-util-1.0-alpha3.jar \
+/home/heidi/work/upnp/heidi/libs/seamless-http-1.0-alpha3.jar \
+/home/heidi/work/upnp/heidi/libs/jetty-http-8.1.8.v20121106.jar \
+/home/heidi/work/upnp/heidi/libs/slf4j-api-1.6.1.jar \
+/home/heidi/work/upnp/heidi/libs/cling-support-2.0-SNAPSHOT.jar \
+/home/heidi/work/upnp/heidi/libs/javax.servlet-3.0.0.v201112011016.jar \
+/opt/android-sdk-linux/tools/support/annotations.jar \
+/home/heidi/work/upnp/heidi/libs/jetty-util-8.1.8.v20121106.jar \
+/home/heidi/work/upnp/heidi/libs/jetty-server-8.1.8.v20121106.jar \
+/home/heidi/work/upnp/heidi/libs/seamless-xml-1.0-alpha3.jar \
+/home/heidi/work/upnp/heidi/libs/jetty-continuation-8.1.8.v20121106.jar \
+/home/heidi/work/upnp/heidi/libs/jetty-servlet-8.1.8.v20121106.jar \
+/home/heidi/work/upnp/heidi/libs/jetty-io-8.1.8.v20121106.jar \
+/home/heidi/work/upnp/heidi/libs/jetty-security-8.1.8.v20121106.jar \
