@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+
     <string name="app_name">WiDMC</string>
 
     <string name="deviceDetails">Device Details</string>
@@ -16,4 +18,5 @@
     <string name="enablingDebugLogging">Enabling debug logging...</string>
     <string name="disablingDebugLogging">Disabling debug logging...</string>
     <string name="deviceDetailsNotYetAvailable">Device details are being discovered, please wait.</string>
+    
 </resources>
