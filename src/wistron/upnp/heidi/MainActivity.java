@@ -47,12 +47,15 @@ public class MainActivity extends ListActivity {
             Intent startServiceIntent = new Intent(this, UpnpScanService.class);
             startService(startServiceIntent);
 
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
             Log.d(TAG, "start upnp service.....");
-            // Intent i = new Intent("com.wistron.heidi.UPNPSTART");
-            // sendBroadcast(i);
         }
 
-        // listAdapter.clear();
         listAdapter = new ArrayAdapter<DeviceDisplay>(this,
                 android.R.layout.simple_list_item_1);
         setListAdapter(listAdapter);

@@ -79,7 +79,9 @@ class BrowseRegistryListener extends DefaultRegistryListener {
 
 
 	public void deviceRemoved(final Device device) {
-		mDevice.remove(new DeviceDisplay(device));
+        DeviceDisplay d = new DeviceDisplay(device);
+		mDevice.remove(d);
+        Log.d(TAG, "[ "+d.toString()+" ]");
     }
 	
 	public  ArrayList<DeviceDisplay> getUpnpDevice(){

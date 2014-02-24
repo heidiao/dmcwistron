@@ -29,20 +29,29 @@ import org.fourthline.cling.support.avtransport.callback.Play;
 import org.fourthline.cling.support.avtransport.callback.SetAVTransportURI;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.IntentService;
 import android.app.Service;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
+import android.content.ComponentName;   
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentFilter.MalformedMimeTypeException;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Parcelable;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class UpnpScanService extends Service {
 
@@ -55,29 +64,27 @@ public class UpnpScanService extends Service {
     public static String streamUrlErrMsg = null;
     private DeviceParcelable mDeviceParcelable;
     private ArrayList<DeviceDisplay> mDeviceList;
-
+    private Handler handler;
+    
     @Override
     public void onCreate() {
-        Log.d(TAG, "onCreate()");
+        Log.i(TAG, "onCreate()");
         // TODO Auto-generated method stub
         super.onCreate();
+        handler = new Handler(Looper.getMainLooper());  
         mDeviceList = new ArrayList<DeviceDisplay>();
         mDeviceParcelable = new DeviceParcelable();
         boolean isBound = bindService(new Intent(this,
                 AndroidUpnpServiceImpl.class), serviceConnection,
                 Context.BIND_AUTO_CREATE);
-        Log.d(TAG, "isBound=" + isBound);
-
-        /*
-         * getApplicationContext().bindService( new Intent(this,
-         * AndroidUpnpServiceImpl.class), serviceConnection,
-         * Context.BIND_AUTO_CREATE );
-         */
+        Log.i(TAG, "isBound=" + isBound);
     }
+    
+
 
     @Override
     public void onDestroy() {
-        Log.d(TAG, "onDestroy()");
+        Log.i(TAG, "onDestroy()");
         // TODO Auto-generated method stub
         super.onDestroy();
 
@@ -91,25 +98,10 @@ public class UpnpScanService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
-        /*
-         * <action android:name="android.intent.action.ACTION_BOOT_COMPLETED" />
-         * <action android:name="com.wistron.heidi.UPNPSTART" /> <action
-         * android:name="com.wistron.heidi.RESPONSE_DEVICE" />
-         */
         IntentFilter intentFilter = new IntentFilter();
-//        intentFilter.addDataAuthority("www.youtube.com",null);
-//        try {
-//            intentFilter.addDataType("text/plain");
-//        } catch (MalformedMimeTypeException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-//        intentFilter.addCategory("android.intent.category.DEFAULT");
-//        intentFilter.addAction("android.intent.action.SEND");
         intentFilter.addAction("com.wistron.heidi.URL");
         intentFilter.addAction("com.wistron.heidi.SEND_POSITION");
-        intentFilter.addAction("com.wistron.heidi.YOUTUBE");
+      //  intentFilter.addAction("com.wistron.heidi.YOUTUBE");
         intentFilter.addAction("com.wistron.heidi.UPNPSTART");
         intentFilter.addAction("android.intent.action.ACTION_BOOT_COMPLETEDE");
         registerReceiver(mBroadcastReceiver, intentFilter);
@@ -120,7 +112,7 @@ public class UpnpScanService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.d(TAG, "onUnbind()");
+        Log.i(TAG, "onUnbind()");
         if (upnpService != null) {
             upnpService.getRegistry().removeListener(registryListener);
         }
@@ -132,7 +124,7 @@ public class UpnpScanService extends Service {
 
     @Override
     public IBinder onBind(Intent arg0) {
-        Log.d(TAG, "onBind()");
+        Log.i(TAG, "onBind()");
         // TODO Auto-generated method stub
         return null;
     }
@@ -159,38 +151,87 @@ public class UpnpScanService extends Service {
             upnpService = null;
         }
     };
-
+    String org_url;
+    Context mContext;
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             // TODO Auto-generated method stub
             String ac = intent.getAction();
-            Log.d(TAG, "onReceive:" + ac);
-
+            Log.i(TAG, "onReceive:" + ac);
+            mContext = context;
             if (ac.equals("com.wistron.heidi.URL")) {
-                String org_url = intent.getExtras().getString("url");
-                Log.d(TAG, "org_url:" + org_url);
-                try {
-                    streamUrl = getStreamingUrisFromYouTubePage(org_url);
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                if (streamUrl != null) {
-                    mDeviceList = registryListener.getUpnpDevice();
-                    mDeviceParcelable.SetDeviceList(mDeviceList);
-                    int size = mDeviceList.size();
-                    if (size == 1) {
-                        sendToMediaRenderer(0, (DeviceDisplay) mDeviceList.get(0), streamUrl);
-                    } else {
-                        Intent i = new Intent(getBaseContext(), MainActivity.class);
-                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        Bundle bundle = new Bundle();
-                        bundle.putParcelable("devicelist", mDeviceParcelable);
-                        i.putExtras(bundle);
-                        getApplication().startActivity(i);
-                        Log.d(TAG, "startActivity:" + i);
-                    }
+                Bundle extras = intent.getExtras();
+                Log.i(TAG, "extras=" + extras);
+                if (extras != null) {
+                    org_url = intent.getExtras().getString("url");
+                    Log.i(TAG, "org_url:" + org_url);
+                    
+                    
+                    handler.post(new Runnable() {     
+                          @Override     
+                          public void run() {     
+                                 //Toast.makeText(getApplicationContext(), "Youtube URL Parser, please wait ..." ,Toast.LENGTH_LONG).show();     
+                                 Toast toast = Toast.makeText(getApplicationContext(),"Youtube URL Parser, please wait ...", Toast.LENGTH_SHORT);
+                                 LinearLayout toastLayout = (LinearLayout) toast.getView();
+                                 TextView toastTV = (TextView) toastLayout.getChildAt(0);
+                                 toastTV.setTextSize(30);
+                                 toast.setGravity(Gravity.CENTER, 0, 0);
+                                 toast.show();
+                          }     
+                      }); 
+                    Thread thread1 = new Thread(){
+                        public void run(){
+                            try {
+                                streamUrl = getStreamingUrisFromYouTubePage(org_url);
+                                Log.i(TAG, "Thread() streamUrl:" + streamUrl);
+                                if (streamUrl != null) {
+                                    mDeviceList = registryListener.getUpnpDevice();
+                                    mDeviceParcelable.SetDeviceList(mDeviceList);
+                                    int size = mDeviceList.size();
+                                    Log.i(TAG, "size:" + size);
+                                    if(size >0){                                
+                                        if (size == 1) {
+                                            sendToMediaRenderer(0, (DeviceDisplay) mDeviceList.get(0), streamUrl);
+                                        } else {
+                                            Intent i = new Intent(getBaseContext(), MainActivity.class);
+                                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            Bundle bundle = new Bundle();
+                                            bundle.putParcelable("devicelist", mDeviceParcelable);
+                                            i.putExtras(bundle);
+                                            getApplication().startActivity(i);
+                                            Log.i(TAG, "startActivity:" + i);
+                                        }
+                                    }
+                                }else{
+                                    Log.i(TAG, "streamUrlErrMsg:" + streamUrlErrMsg);
+                                    handler.post(new Runnable() {     
+                                        @Override     
+                                        public void run() {     
+                                            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                                            builder.setTitle("Error Message");
+                                            builder.setIcon(R.drawable.warning);
+                                            builder.setCancelable(false);
+                                            builder.setMessage(streamUrlErrMsg);
+                                            builder.setPositiveButton("Close", new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int whichButton) {
+                                                    dialog.dismiss();
+                                                }
+                                            });
+                                            AlertDialog alert = builder.create();
+                                            alert.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                            alert.show();
+                                        }     
+                                    }); 
+                                }
+                            } catch (IOException e) {
+                                // TODO Auto-generated catch block
+                                Log.i(TAG, "IOException:" + e);
+                                e.printStackTrace();
+                            }
+                        }
+                    };
+                    thread1.start();
                 }
                   
             }else if (ac.equals("com.wistron.heidi.SEND_POSITION")) {
@@ -204,30 +245,24 @@ public class UpnpScanService extends Service {
                         UpnpScanService.class);
                 context.startService(startServiceIntent);
 
-            // ############ FOR TEST....
-            // ############ FOR TEST....
-            // ############ FOR TEST....
-            } else if (ac.equals("com.wistron.heidi.YOUTUBE")) {
-                streamUrl = "http://10.34.197.63:32400/library/parts/357/file.mp4";
-                mDeviceList = registryListener.getUpnpDevice();
-                mDeviceParcelable.SetDeviceList(mDeviceList);
-                int size = mDeviceList.size();
-                if (size == 1) {
-                    sendToMediaRenderer(0, (DeviceDisplay) mDeviceList.get(0), streamUrl);
-                } else {
-                    Intent i = new Intent(getBaseContext(), MainActivity.class);
-                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Bundle bundle = new Bundle();
-                    bundle.putParcelable("devicelist", mDeviceParcelable);
-                    i.putExtras(bundle);
-                    getApplication().startActivity(i);
-                    Log.d(TAG, "startActivity:" + i);
-                }
+//            } else if (ac.equals("com.wistron.heidi.YOUTUBE")) {
+//                streamUrl = "http://10.34.197.63:32400/library/parts/357/file.mp4";
+//                mDeviceList = registryListener.getUpnpDevice();
+//                mDeviceParcelable.SetDeviceList(mDeviceList);
+//                int size = mDeviceList.size();
+//                if (size == 1) {
+//                    sendToMediaRenderer(0, (DeviceDisplay) mDeviceList.get(0), streamUrl);
+//                } else {
+//                    Intent i = new Intent(getBaseContext(), MainActivity.class);
+//                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    Bundle bundle = new Bundle();
+//                    bundle.putParcelable("devicelist", mDeviceParcelable);
+//                    i.putExtras(bundle);
+//                    getApplication().startActivity(i);
+//                    Log.i(TAG, "startActivity:" + i);
+//                }
                 
             }
-            // ############ FOR TEST....
-            // ############ FOR TEST....
-            // ############ FOR TEST....
         }
     };
     
@@ -239,13 +274,25 @@ public class UpnpScanService extends Service {
                         avTransportService) {
                     @Override
                     public void success(ActionInvocation invocation) {
-                        Log.d(TAG, "sendPlay() 'Play' action successfully");
+                        Log.i(TAG, "sendPlay() 'Play' action successfully");
+                        
+                        handler.post(new Runnable() {     
+                              @Override     
+                              public void run() {     
+                                     Toast toast = Toast.makeText(getApplicationContext(),"Send video successfully", Toast.LENGTH_LONG);
+                                     LinearLayout toastLayout = (LinearLayout) toast.getView();
+                                     TextView toastTV = (TextView) toastLayout.getChildAt(0);
+                                     toastTV.setTextSize(30);
+                                     toast.setGravity(Gravity.CENTER, 0, 0);
+                                     toast.show();
+                              }     
+                          }); 
                     }
 
                     @Override
                     public void failure(ActionInvocation invocation,
                             UpnpResponse operation, String defaultMsg) {
-                        Log.d(TAG, "sendPlay() Fail:" + defaultMsg);
+                        Log.i(TAG, "sendPlay() Fail:" + defaultMsg);
                     }
                 });
     }
@@ -254,28 +301,49 @@ public class UpnpScanService extends Service {
         Log.i(TAG, "sendToMediaRenderer(), device="+device+", url="+uri);
         final org.fourthline.cling.model.meta.Service avTransportService = (device.getDevice()).findService(SUPPORTED_AV_TRANSPORT_TYPE);        
         upnpService.getControlPoint().execute(
-                new SetAVTransportURI(new UnsignedIntegerFourBytes(instanceId),
-                        avTransportService, uri) {
-                    @Override
-                    public void success(ActionInvocation invocation) {
-                        Log.d(TAG,
-                                "sendToMediaRenderer() Successfuly sent URI to: (Instance: "
-                                        + instanceId
-                                        + ") "
-                                        + avTransportService.getDevice()
-                                                .getDetails().getFriendlyName());
-                        sendPlay(instanceId, avTransportService);
-                    }
+            new SetAVTransportURI(new UnsignedIntegerFourBytes(instanceId),
+                    avTransportService, uri) {
+                @Override
+                public void success(ActionInvocation invocation) {
+                    Log.i(TAG,
+                            "sendToMediaRenderer() Successfuly sent URI to: (Instance: "
+                                    + instanceId
+                                    + ") "
+                                    + avTransportService.getDevice()
+                                            .getDetails().getFriendlyName());
+                    sendPlay(instanceId, avTransportService);
+                }
 
-                    @Override
-                    public void failure(ActionInvocation arg0,
-                            UpnpResponse arg1, String arg2) {
-                        Log.d(TAG, "sendToMediaRenderer() Failed to send URI: "
-                                + arg0 + "..." + arg2);
-                    }
-                });
+                @Override
+                public void failure(ActionInvocation arg0,
+                        UpnpResponse arg1, String arg2) {
+                    ErrorMessage = arg2;
+                    Log.i(TAG, "sendToMediaRenderer() Failed to send URI: "
+                            + arg0 + "..." + arg2);
+                    
+                    handler.post(new Runnable() {     
+                        @Override     
+                        public void run() {     
+                            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                            builder.setTitle("Error Message");
+                            builder.setIcon(R.drawable.warning);
+                            builder.setCancelable(false);
+                            builder.setMessage(ErrorMessage);
+                            builder.setPositiveButton("Close", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    dialog.dismiss();
+                                }
+                            });
+                            AlertDialog alert = builder.create();
+                            alert.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                            alert.show();
+                        }     
+                    }); 
+                    
+                }
+            });
     }
-    
+    String ErrorMessage;
 
     public String getStreamingUrisFromYouTubePage(String ytUrl)
             throws IOException {
@@ -290,88 +358,98 @@ public class UpnpScanService extends Service {
         if (andIdx >= 0) {
             ytUrl = ytUrl.substring(0, andIdx);
         }
-
-        // Get the HTML response
-        String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:8.0.1)";
-        HttpClient client = new DefaultHttpClient();
-        client.getParams().setParameter(CoreProtocolPNames.USER_AGENT,
-                userAgent);
-        HttpGet request = new HttpGet(ytUrl);
-        HttpResponse response = client.execute(request);
-        String html = "";
-        InputStream in = response.getEntity().getContent();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-        StringBuilder str = new StringBuilder();
-        String line = null;
-        while ((line = reader.readLine()) != null) {
-            str.append(line.replace("\\u0026", "&"));
-        }
-        in.close();
-        html = str.toString();
-
-        // Parse the HTML response and extract the streaming URIs
-        if (html.contains("verify-age-thumb")) {
-            streamUrlErrMsg = "YouTube is asking for age verification. We can't handle that sorry.";
-            Log.w("MainActivity", streamUrlErrMsg);
-            return null;
-        }
-
-        if (html.contains("das_captcha")) {
-            streamUrlErrMsg = "Captcha found, please try with different IP address.";
-            Log.w("MainActivity", streamUrlErrMsg);
-            return null;
-        }
-
-        Pattern p = Pattern.compile("stream_map\": \"(.*?)?\"");
-        // Pattern p = Pattern.compile("/stream_map=(.[^&]*?)\"/");
-        Matcher m = p.matcher(html);
-        List<String> matches = new ArrayList<String>();
-        while (m.find()) {
-            matches.add(m.group());
-        }
-
-        if (matches.size() != 1) {
-            streamUrlErrMsg = "Found zero or too many stream maps.";
-            Log.w("MainActivity", streamUrlErrMsg);
-            return null;
-        }
-
-        String urls[] = matches.get(0).split(",");
         HashMap<String, String> foundArray = new HashMap<String, String>();
-        for (String ppUrl : urls) {
-            String url = URLDecoder.decode(ppUrl, "UTF-8");
+        boolean foundURL = false;
+        //retry
+        for(int i=0;i<5;i++){
+            // Get the HTML response
+            String userAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:8.0.1)";
+            HttpClient client = new DefaultHttpClient();
+            client.getParams().setParameter(CoreProtocolPNames.USER_AGENT,
+                    userAgent);
+            HttpGet request = new HttpGet(ytUrl);
+            HttpResponse response = client.execute(request);
+            String html = "";
+            InputStream in = response.getEntity().getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            StringBuilder str = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                str.append(line.replace("\\u0026", "&"));
+            }
+            in.close();
+            html = str.toString();
+    
+            // Parse the HTML response and extract the streaming URIs
+            if (html.contains("verify-age-thumb")) {
+                streamUrlErrMsg = "YouTube is asking for age verification. We can't handle that sorry.";
+                Log.w(TAG, streamUrlErrMsg);
+                return null;
+            }
+    
+            if (html.contains("das_captcha")) {
+                streamUrlErrMsg = "Captcha found, please try with different IP address.";
+                Log.w(TAG, streamUrlErrMsg);
+                return null;
+            }
+    
+            Pattern p = Pattern.compile("stream_map\": \"(.*?)?\"");
+            // Pattern p = Pattern.compile("/stream_map=(.[^&]*?)\"/");
+            Matcher m = p.matcher(html);
+            List<String> matches = new ArrayList<String>();
+            while (m.find()) {
+                matches.add(m.group());
+            }
+    
+            if (matches.size() != 1) {
+                streamUrlErrMsg = "Found zero or too many stream maps.";
+                Log.w(TAG, streamUrlErrMsg);
+                return null;
+            }
+        
+            String urls[] = matches.get(0).split(",");
+            foundArray = new HashMap<String, String>();
+            for (String ppUrl : urls) {
+                String url = URLDecoder.decode(ppUrl, "UTF-8");
 
-            Pattern p1 = Pattern.compile("itag=([0-9]+?)[&]");
-            Matcher m1 = p1.matcher(url);
-            String itag = null;
-            if (m1.find()) {
-                itag = m1.group(1);
+                Pattern p1 = Pattern.compile("itag=([0-9]+?)[&]");
+                Matcher m1 = p1.matcher(url);
+                String itag = null;
+                if (m1.find()) {
+                    itag = m1.group(1);
+                }
+
+                Pattern p2 = Pattern.compile("sig=(.*?)[&]");
+                Matcher m2 = p2.matcher(url);
+                String sig = null;
+                if (m2.find()) {
+                    sig = m2.group(1);
+                }
+
+                Pattern p3 = Pattern.compile("url=(.*?)[&]");
+                Matcher m3 = p3.matcher(ppUrl);
+                String um = null;
+                if (m3.find()) {
+                    um = m3.group(1);
+                }
+
+                if (itag != null && sig != null && um != null) {
+                    foundArray.put(itag, URLDecoder.decode(um, "UTF-8") + "&"
+                            + "signature=" + sig);
+                }
             }
 
-            Pattern p2 = Pattern.compile("sig=(.*?)[&]");
-            Matcher m2 = p2.matcher(url);
-            String sig = null;
-            if (m2.find()) {
-                sig = m2.group(1);
+            if (foundArray.size() != 0) {
+                foundURL = true;
+                break;
             }
-
-            Pattern p3 = Pattern.compile("url=(.*?)[&]");
-            Matcher m3 = p3.matcher(ppUrl);
-            String um = null;
-            if (m3.find()) {
-                um = m3.group(1);
-            }
-
-            if (itag != null && sig != null && um != null) {
-                foundArray.put(itag, URLDecoder.decode(um, "UTF-8") + "&"
-                        + "signature=" + sig);
-            }
+            Log.i(TAG, "RETRY:"+i+"......");
         }
 
-        if (foundArray.size() == 0) {
+        if(!foundURL){
             streamUrlErrMsg = "Couldn't find any URLs and corresponding signatures";
-            Log.w("MainActivity", streamUrlErrMsg);
-            return null;
+            Log.i(TAG, streamUrlErrMsg);
+            return null;            
         }
 
         HashMap<String, Meta> typeMap = new HashMap<String, Meta>();
@@ -399,7 +477,7 @@ public class UpnpScanService extends Service {
                 Video newVideo = new Video(meta.ext, meta.type,
                         foundArray.get(format));
                 videos.add(newVideo);
-                Log.d("MainActivity", "YouTube Video streaming details: ext:"
+                Log.i(TAG, "YouTube Video streaming details: ext:"
                         + newVideo.ext + ", type:" + newVideo.type + ", url:"
                         + newVideo.url);
                 return newVideo.url;
@@ -409,8 +487,5 @@ public class UpnpScanService extends Service {
         return null;
     }
 
-    public String getStreamMsg() {
-        return streamUrlErrMsg;
-    }
-
+    
 }
