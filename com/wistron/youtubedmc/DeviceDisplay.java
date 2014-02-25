@@ -1,4 +1,4 @@
-package wistron.upnp.heidi;
+package com.wistron.youtubedmc;
 
 import org.fourthline.cling.model.meta.Device;
 import org.fourthline.cling.model.meta.Service;

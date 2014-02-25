@@ -1,4 +1,4 @@
-package wistron.upnp.heidi;
+package com.wistron.youtubedmc;
 
 
 class Meta {

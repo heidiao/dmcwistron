@@ -1,4 +1,4 @@
-package wistron.upnp.heidi;
+package com.wistron.youtubedmc;
 
 import java.util.ArrayList;
 
@@ -7,15 +7,11 @@ import org.fourthline.cling.model.meta.LocalDevice;
 import org.fourthline.cling.model.meta.RemoteDevice;
 import org.fourthline.cling.registry.DefaultRegistryListener;
 import org.fourthline.cling.registry.Registry;
-
-
 import android.util.Log;
-import android.widget.ArrayAdapter;
 
 class BrowseRegistryListener extends DefaultRegistryListener {
 
     ArrayList<DeviceDisplay> mDevice = new ArrayList<DeviceDisplay>();
-    private ArrayAdapter<DeviceDisplay> listAdapter;
     private static final String TAG = "BrowseRegistryListener";
     private static final String MATCH_NAME = "WiRenderer";
     
@@ -79,9 +75,9 @@ class BrowseRegistryListener extends DefaultRegistryListener {
 
 
 	public void deviceRemoved(final Device device) {
-        DeviceDisplay d = new DeviceDisplay(device);
+	    DeviceDisplay d = new DeviceDisplay(device);
 		mDevice.remove(d);
-        Log.d(TAG, "[ "+d.toString()+" ]");
+        Log.d(TAG, "deviceRemoved ...[ "+d.toString()+" ]");
     }
 	
 	public  ArrayList<DeviceDisplay> getUpnpDevice(){
