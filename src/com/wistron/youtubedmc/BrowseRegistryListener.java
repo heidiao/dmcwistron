@@ -7,14 +7,21 @@ import org.fourthline.cling.model.meta.LocalDevice;
 import org.fourthline.cling.model.meta.RemoteDevice;
 import org.fourthline.cling.registry.DefaultRegistryListener;
 import org.fourthline.cling.registry.Registry;
+
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 class BrowseRegistryListener extends DefaultRegistryListener {
 
     ArrayList<DeviceDisplay> mDevice = new ArrayList<DeviceDisplay>();
+    protected static final String BCAST_UPDATE_DEVICE = "com.wistron.youtubedmc.UPDATE_DEVICE"; 
     private static final String TAG = "BrowseRegistryListener";
     private static final String MATCH_NAME = "WiRenderer";
-    
+    private Context mContext;
+    BrowseRegistryListener(Context context){
+        mContext = context;
+    }
     /* Discovery performance optimization for very slow Android devices! */
     @Override
     public void remoteDeviceDiscoveryStarted(Registry registry, RemoteDevice device) {
@@ -52,7 +59,7 @@ class BrowseRegistryListener extends DefaultRegistryListener {
     	int position=-1;
         int i=0;
    	 	for(DeviceDisplay dd : mDevice){
-            if(dd.equals(d)){
+            if(dd.toString().equals(d.toString())){
 			     position = i;
 			 }
 			 i++;
@@ -62,25 +69,31 @@ class BrowseRegistryListener extends DefaultRegistryListener {
     
     public void deviceAdded(final Device device) {
     	 DeviceDisplay d = new DeviceDisplay(device);
-         if(d.toString().startsWith(MATCH_NAME)){
+         if(d.toString().startsWith(MATCH_NAME) && !d.toString().endsWith("*")){
              int position = getPosition(d);
              if (position >= 0) {                
              	mDevice.set(position, d);
+                Log.d(TAG, "update ... [ "+d.toString()+" ]");
              } else {
               	mDevice.add(d);
+                Log.d(TAG, "add ... [ "+d.toString()+" ]");
              }
-             Log.d(TAG, "[ "+d.toString()+" ]");
          }
+         Intent i = new Intent(BCAST_UPDATE_DEVICE);
+         mContext.sendBroadcast(i);    
     }
 
 
 	public void deviceRemoved(final Device device) {
 	    DeviceDisplay d = new DeviceDisplay(device);
 		mDevice.remove(d);
-        Log.d(TAG, "deviceRemoved ...[ "+d.toString()+" ]");
+        Log.d(TAG, "removed ...[ "+d.toString()+" ]");
+        Intent i = new Intent(BCAST_UPDATE_DEVICE);
+        mContext.sendBroadcast(i);    
     }
 	
-	public  ArrayList<DeviceDisplay> getUpnpDevice(){
+
+    public  ArrayList<DeviceDisplay> getUpnpDevice(){
 		return mDevice;
 	}
 	

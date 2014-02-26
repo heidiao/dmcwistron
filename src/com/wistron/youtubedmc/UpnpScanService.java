@@ -58,7 +58,7 @@ public class UpnpScanService extends Service {
     private static final int RETRY_URL = 5;
     public static final ServiceType SUPPORTED_AV_TRANSPORT_TYPE = new UDAServiceType("AVTransport", 1);
     
-    private BrowseRegistryListener mRegisterListener = new BrowseRegistryListener();
+    private BrowseRegistryListener mRegisterListener;
     private DeviceParcelable mDeviceParcelable;
     private ArrayList<DeviceDisplay> mDeviceList;
     private Handler mHandler;
@@ -400,6 +400,7 @@ public class UpnpScanService extends Service {
         mHandler = new Handler(Looper.getMainLooper());  
         mDeviceList = new ArrayList<DeviceDisplay>();
         mDeviceParcelable = new DeviceParcelable();
+        mRegisterListener = new BrowseRegistryListener(getApplicationContext());
         bindService(new Intent(this, AndroidUpnpServiceImpl.class), mServiceConnection, Context.BIND_AUTO_CREATE);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BCAST_URL);

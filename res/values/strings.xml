@@ -4,8 +4,8 @@
     <string name="app_name">WiYoutubeDMC</string>    
     <string name="close">Close</string>
     <string name="error_title">Error Message</string>
-    <string name="youtube_url_parser">Youtube URL Parser, please wait &#8230;</string>
-    <string name="connot_found">Cannot found any device, please try again.</string>
+    <string name="youtube_url_parser">Find URLs and corresponding signatures &#8230;</string>
+    <string name="connot_found">Cannot found any renderer device, please try again.</string>
     <string name="send_success">Send video successfully</string>    
     <string name="youtube_error_age_verify">YouTube is asking for age verification. We cannot handle that sorry.</string>
     <string name="youtube_error_captcha_found">Captcha found, please try with different IP address.</string>
